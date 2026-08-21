@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desk — Task Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F6F1E7;
+    --paper-raised: #FDFBF6;
+    --ink: #212B36;
+    --ink-soft: #5B6572;
+    --rule: #D8D0BE;
+    --stamp-red: #A63A2E;
+    --stamp-green: #3F6B49;
+    --gold: #B2872F;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      linear-gradient(var(--rule) 1px, transparent 1px);
+    background-size: 100% 40px;
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 18px;
+    margin-bottom: 32px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 40px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: right;
+  }
+
+  .stats {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .stats b {
+    color: var(--ink);
+    font-size: 15px;
+  }
+
+  .clear-btn {
+    margin-left: auto;
+    background: none;
+    border: 1.5px solid var(--rule);
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 8px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .clear-btn:hover { border-color: var(--stamp-red); color: var(--stamp-red); }
+  .clear-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .clear-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 36px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 14px 16px;
+    border: 1.5px solid var(--ink);
+    background: var(--paper-raised);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    border-radius: 2px;
+  }
+
+  input[type="text"]::placeholder { color: #A6A090; }
+  input[type="text"]:focus { border-color: var(--stamp-red); }
+
+  button.add-btn {
+    padding: 14px 22px;
+    background: var(--ink);
+    color: var(--paper-raised);
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.15s ease;
+  }
+  button.add-btn:hover { background: var(--stamp-red); }
+  button.add-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--paper-raised);
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    padding: 16px 18px;
+    overflow: hidden;
+  }
+
+  .index-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    width: 26px;
+    flex-shrink: 0;
+  }
+
+  .check {
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .check:hover { border-color: var(--stamp-green); }
+  .check svg { opacity: 0; width: 12px; height: 12px; }
+
+  .card.done .check {
+    background: var(--stamp-green);
+    border-color: var(--stamp-green);
+  }
+  .card.done .check svg { opacity: 1; }
+
+  .task-name {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+
+  .card.done .task-name {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-color: var(--stamp-green);
+  }
+
+  .stamp {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-12deg);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--stamp-red);
+    border: 2px solid var(--stamp-red);
+    padding: 3px 8px;
+    border-radius: 3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .card.done .stamp {
+    opacity: 0.85;
+    transform: translateY(-50%) rotate(-12deg) scale(1);
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+  }
+  .remove-btn:hover { color: var(--stamp-red); }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border: 1.5px dashed var(--rule);
+    border-radius: 2px;
+  }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 30px; }
+    header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .date { text-align: left; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <p class="eyebrow">Desk / Task Dashboard</p>
+        <h1>Today's Board</h1>
+      </div>
+      <div class="date" id="today"></div>
+    </header>
+
+    <div class="stats">
+      <span><b id="statTotal">0</b> total</span>
+      <span><b id="statOpen">0</b> open</span>
+      <span><b id="statDone">0</b> done</span>
+      <button class="clear-btn" id="clearBtn">Clear all</button>
+    </div>
+
+    <form id="addForm">
+      <input type="text" id="taskInput" placeholder="Add a new task…" autocomplete="off" required>
+      <button type="submit" class="add-btn">Add</button>
+    </form>
+
+    <div class="card-list" id="cardList"></div>
+  </div>
+
+<script>
+  const cardList = document.getElementById('cardList');
+  const addForm = document.getElementById('addForm');
+  const taskInput = document.getElementById('taskInput');
+  const statTotal = document.getElementById('statTotal');
+  const statOpen = document.getElementById('statOpen');
+  const statDone = document.getElementById('statDone');
+  const clearBtn = document.getElementById('clearBtn');
+
+  document.getElementById('today').textContent = new Date().toLocaleDateString(undefined, {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  async function fetchTasks() {
+    const res = await fetch('/api/tasks');
+    const tasks = await res.json();
+    render(tasks);
+  }
+
+  function render(tasks) {
+    cardList.innerHTML = '';
+
+    if (tasks.length === 0) {
+      cardList.innerHTML = '<div class="empty">No tasks yet. Add your first one above.</div>';
+    } else {
+      tasks.forEach((task, i) => {
+        const card = document.createElement('div');
+        card.className = 'card' + (task.done ? ' done' : '');
+        card.innerHTML = `
+          <span class="index-num">${String(i + 1).padStart(2, '0')}</span>
+          <button class="check" data-index="${i}" aria-label="Toggle done">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+              <path d="M4 12l5 5L20 6"/>
+            </svg>
+          </button>
+          <span class="task-name">${escapeHtml(task.name)}</span>
+          <span class="stamp">Done</span>
+          <button class="remove-btn" data-index="${i}" aria-label="Remove task">×</button>
+        `;
+        cardList.appendChild(card);
+      });
+    }
+
+    statTotal.textContent = tasks.length;
+    statDone.textContent = tasks.filter(t => t.done).length;
+    statOpen.textContent = tasks.filter(t => !t.done).length;
+    clearBtn.disabled = tasks.length === 0;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  addForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = taskInput.value.trim();
+    if (!name) return;
+    await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    taskInput.value = '';
+    fetchTasks();
+  });
+
+  cardList.addEventListener('click', async (e) => {
+    const checkBtn = e.target.closest('.check');
+    const removeBtn = e.target.closest('.remove-btn');
+
+    if (checkBtn) {
+      const index = parseInt(checkBtn.dataset.index);
+      await fetch('/api/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index })
+      });
+      fetchTasks();
+    }
+
+    if (removeBtn) {
+      const index = parseInt(removeBtn.dataset.index);
+      await fetch('/api/tasks', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index })
+      });
+      fetchTasks();
+    }
+  });
+
+  clearBtn.addEventListener('click', async () => {
+    if (!confirm('Clear all tasks? This cannot be undone.')) return;
+    await fetch('/api/tasks', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clearAll: true })
+    });
+    fetchTasks();
+  });
+
+  fetchTasks();
+</script>
+</body>
+</html>
